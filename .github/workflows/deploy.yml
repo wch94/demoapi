@@ -3,13 +3,14 @@ name: Build and deploy .NET container to Azure App Service
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - main
 
 env:
   AZURE_CONTAINER_REGISTRY: demoacrwch94.azurecr.io
   IMAGE_NAME: demoapi
   APP_SERVICE_NAME: demo-app-wch94
   RESOURCE_GROUP: demo-rg
+  APIM_NAME: demoapimwch94
 
 jobs:
   build-and-deploy:
@@ -38,3 +39,12 @@ jobs:
 
     - name: Restart Azure Web App (pull latest image)
       run: az webapp restart --name ${{ env.APP_SERVICE_NAME }} --resource-group ${{ env.RESOURCE_GROUP }}
+
+    - name: Import API into API Management
+      run: |
+        az apim api import --resource-group ${{ env.RESOURCE_GROUP }} \
+                           --service-name ${{ env.APIM_NAME }} \
+                           --api-id ${{ env.IMAGE_NAME }} \
+                           --path ${{ env.IMAGE_NAME }} \
+                           --specification-url https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net/swagger/v1/swagger.json \
+                           --format openapi
