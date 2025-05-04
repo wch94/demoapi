@@ -42,9 +42,11 @@ jobs:
 
     - name: Import API into API Management
       run: |
-        az apim api import --resource-group ${{ env.RESOURCE_GROUP }} \
-                           --service-name ${{ env.APIM_NAME }} \
-                           --api-id ${{ env.IMAGE_NAME }} \
-                           --path ${{ env.IMAGE_NAME }} \
-                           --specification-url https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net/swagger/v1/swagger.json \
-                           --format openapi
+        az apim api import \
+          --resource-group demo-rg \
+          --service-name demoapimwch94 \
+          --api-id demoapi \
+          --path demoapi \
+          --specification-format OpenApi \
+          --specification-url https://demo-app-wch94.azurewebsites.net/swagger/v1/swagger.json
+
