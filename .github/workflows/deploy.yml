@@ -1,0 +1,40 @@
+name: Build and deploy .NET container to Azure App Service
+
+on:
+  push:
+    branches:
+      - main  # or your deployment branch
+
+env:
+  AZURE_CONTAINER_REGISTRY: demoacrwch94.azurecr.io
+  IMAGE_NAME: demoapi
+  APP_SERVICE_NAME: demo-app-wch94
+  RESOURCE_GROUP: demo-rg
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Log in to ACR
+      run: az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+
+    - name: Build Docker image
+      run: docker build -t ${{ env.IMAGE_NAME }}:latest .
+
+    - name: Tag Docker image
+      run: docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Push Docker image to ACR
+      run: docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Restart Azure Web App (pull latest image)
+      run: az webapp restart --name ${{ env.APP_SERVICE_NAME }} --resource-group ${{ env.RESOURCE_GROUP }}
